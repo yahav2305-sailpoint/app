@@ -9,3 +9,7 @@
 
 1. Build the image: `docker build . -t <tag>`
 1. Run the image: `docker run --rm -p <port>:<port> --env PORT=<port> <tag>`
+
+## Running the app in a local Kubernertes cluster
+
+To test how the app runs in a Kubernetes cluster, see the readme of this repo: [yahav2305-sailpoint/app-helm](https://github.com/yahav2305-sailpoint/app-helm/blob/main/README.md)
