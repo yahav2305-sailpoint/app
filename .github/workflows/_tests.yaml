@@ -1,0 +1,22 @@
+name: CI Tests
+
+on:
+  workflow_call:
+
+# Separated into a standalone workflow for adding more tests easily for all pipeline stages (like running pytest tests)
+jobs:
+
+  test-dockerfile:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@2332a7b74a6de0dda2e2221d575162eba76ba5e5 # v3.3.0
+        with:
+          dockerfile: ./docker/Dockerfile
+          failure-threshold: warning
