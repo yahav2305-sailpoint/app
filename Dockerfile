@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir --target=/app/dependencies -r /app/requirements.t
 
 # Rootless + Distroless + no shell!
 # No tag to always update to the latest image according to the release strategy of gcr distroless images
+# hadolint ignore=DL3006
 FROM gcr.io/distroless/python3-debian13
 
 WORKDIR /app
