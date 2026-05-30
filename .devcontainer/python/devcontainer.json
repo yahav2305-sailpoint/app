@@ -1,0 +1,28 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/go
+{
+	"name": "Python",
+	"image": "python:3.14-slim-trixie",
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {}
+	},
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.debugpy",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.vscode-python-envs",
+				"nhoizey.gremlins",
+				"christian-kohler.path-intellisense",
+				"Gruntfuggly.todo-tree",
+				"shardulm94.trailing-spaces"
+			]
+		}
+	},
+
+	"postCreateCommand": "pip install -r app/requirements.txt"
+}
