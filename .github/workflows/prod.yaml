@@ -29,10 +29,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Find the PR that was just merged into this commit
-          PR_HEAD_SHA=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls | jq -r '.[0].head.sha')
+          MAX_ATTEMPTS=6
+          ATTEMPT=1
+          PR_HEAD_SHA=""
 
-          if [ -z "$PR_HEAD_SHA" ]; then
+          echo "Fetching PR associated with commit ${{ github.sha }}..."
+
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Attempt $ATTEMPT of $MAX_ATTEMPTS..."
+
+            # Find the PR that was just merged into this commit
+            PR_HEAD_SHA=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/pulls | jq -r '.[0].head.sha')
+
+            if [ -n "$PR_HEAD_SHA" ] && [ "$PR_HEAD_SHA" != "null" ]; then
+              echo "Successfully found PR head SHA after $ATTEMPT attempt(s)."
+              break
+            fi
+
+            echo "API did not return a PR yet. Retrying in 10 seconds..."
+            sleep 5
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+
+          if [ -z "$PR_HEAD_SHA" ] || [ "PR_HEAD_SHA" == "null" ]; then
             echo "No merged PR found for this commit"
             exit 1
           fi
@@ -86,7 +105,7 @@ jobs:
 
       - name: Update helm chart to new docker version
         run: |
-          yq -i '.appVersion = "${{ github.ref_name }}"' ./charts/wiki/Chart.yaml
+          yq -i '.appVersion = "${{ github.ref_name }}"' ./charts/app/Chart.yaml
 
       - uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321 # v10.0.0
         with:
