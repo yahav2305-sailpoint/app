@@ -7,14 +7,12 @@ COPY app/* /app/
 RUN pip install --no-cache-dir --target=/app/dependencies -r /app/requirements.txt
 
 # Rootless + Distroless + no shell!
-# No tag to always update to the latest image according to the release strategy of gcr distroless images
-# hadolint ignore=DL3006
-FROM gcr.io/distroless/python3-debian13
+FROM gcr.io/distroless/python3-debian13:nonroot
 
 WORKDIR /app
 
-COPY --from=builder /app/dependencies /app/dependencies
-COPY --from=builder /app/app.py /app/app.py
+COPY --from=builder --chown=65532:65532 /app/dependencies /app/dependencies
+COPY --from=builder --chown=65532:65532 /app/app.py /app/app.py
 
 ENV PYTHONPATH=/app/dependencies
 
