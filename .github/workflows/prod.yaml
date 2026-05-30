@@ -86,7 +86,7 @@ jobs:
 
       - name: Update helm chart to new docker version
         run: |
-          yq -i '.appVersion = "${{ github.ref_name }}"' ./charts/wiki/Chart.yaml
+          yq -i '.appVersion = "${{ github.ref_name }}"' ./charts/app/Chart.yaml
 
       - uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321 # v10.0.0
         with:
