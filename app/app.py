@@ -7,7 +7,9 @@ app = Flask(__name__)
 # In-memory store (no persistence needed for this assignment)
 store = {}
 
-BASE_URL = os.environ.get("BASE_URL", "http://localhost:8080")
+# My change - so that port will be configurable
+PORT = int(os.environ.get("PORT", 8080))
+BASE_URL = os.environ.get("BASE_URL", f"http://localhost:{PORT}")
 
 
 @app.route("/health")
@@ -42,4 +44,4 @@ def stats():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=PORT)
