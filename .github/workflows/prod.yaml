@@ -1,0 +1,86 @@
+name: Prod
+
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - '*'
+
+jobs:
+
+  promote-image:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+      security-events: write
+      packages: write
+
+    steps:
+      - name: Setup Crane
+        uses: imjasonh/setup-crane@6da1ae018866400525525ce74ff892880c099987 # v0.5
+
+      - name: Login to GitHub Container Registry
+        run: crane auth login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge to Main
+        if: github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Set image to latest
+          crane tag ghcr.io/${{ github.repository }}:sha-$GITHUB_SHA latest
+
+      - name: Tagging
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_NAME="${{ github.ref_name }}"
+          TARGET_SHA="sha-${{ github.sha }}"
+
+          echo "Promoting $TARGET_SHA to $TAG_NAME"
+          crane tag ghcr.io/${{ github.repository }}:$TARGET_SHA "$TAG_NAME"
+
+  update-image-tag-in-helm:
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+
+    if: startsWith(github.ref, 'refs/tags/')
+
+    needs: promote-image
+
+    steps:
+      - name: Checkout helm Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: ${{ github.repository }}
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.HELM_REPO_WRITE }}
+
+      - name: Get Latest Tag
+        id: latest-tag
+        run: |
+          latest_tag=$(git tag --sort=-v:refname | head -n 1)
+          echo found latest tag "$latest_tag"
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+
+      - name: Next SemVers
+        uses: WyriHaximus/github-action-next-semvers@18aa9ed4152808ab99b88d71f5481e41f8d89930 # v1.2.1
+        id: semvers
+        with:
+          version: ${{ steps.latest-tag.outputs.latest_tag }}
+
+      - name: Update helm chart to new docker version
+        run: |
+          yq -i '.appVersion = "${{ github.ref_name }}"' ./charts/wiki/Chart.yaml
+
+      - uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321 # v10.0.0
+        with:
+          default_author: github_actions
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          message: Updated helm chart app version
+          tag: ${{ steps.semvers.outputs.v_minor }}
