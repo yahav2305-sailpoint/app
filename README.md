@@ -16,7 +16,7 @@ To test how the app runs in a Kubernetes cluster, see the readme of this repo: [
 
 ## Creating a new version
 
-In order to create a new version of the app, make the required changes (whether in the main branch or by merging feature branches to main) and then create a new release with a tag that has a higher semver than the previous release.\
+In order to create a new version of the app, make the required changes (by merging feature branches to main) and then create a new release with a tag that has a higher semver than the previous release.\
 New versions will autoamtically be compiled to new docker images.
 
 New Docker images will be automatically created for new pull requests, and promoted to main once the pull request is merged to main.\
